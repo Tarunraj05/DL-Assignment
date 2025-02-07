@@ -1,11 +1,12 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 from sklearn import datasets
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report
+from matplotlib.colors import ListedColormap
 
+# Perceptron Model Class
 class PerceptronModel:
     def __init__(self, learning_rate=0.1, max_iter=500):
         self.learning_rate = learning_rate
@@ -35,28 +36,38 @@ class PerceptronModel:
     
     def predict(self, X):
         return np.array([1 if np.dot(x, self.weights) + self.bias >= 0 else 0 for x in X])
-        
+
+# Function to plot the decision boundary
+def plot_decision_boundary(X, y, model, title):
+    x_min, x_max = X[:, 0].min() - 0.5, X[:, 0].max() + 0.5
+    y_min, y_max = X[:, 1].min() - 0.5, X[:, 1].max() + 0.5
+    
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.01), np.arange(y_min, y_max, 0.01))
+    Z = model.predict(np.c_[xx.ravel(), yy.ravel()]).reshape(xx.shape)
+    
+    cmap_light = ListedColormap(['#FFAAAA', '#AAAAFF'])
+    
+    plt.contourf(xx, yy, Z, alpha=0.3, cmap=cmap_light)
+    plt.scatter(X[:, 0], X[:, 1], c=y, cmap=ListedColormap(['red', 'blue']), edgecolors='k', marker='o')
+    plt.xlabel("Sepal Length")
+    plt.ylabel("Sepal Width")
+    plt.title(title)
+    plt.show()
+
 # Load the Iris dataset
 iris = datasets.load_iris()
 X = iris.data[:, :2]  # Use only sepal length and sepal width
 y = (iris.target != 0).astype(int)  # Convert to binary classification (Setosa vs. Non-Setosa)
 
-# Convert to DataFrame for visualization
-df = pd.DataFrame(X, columns=['Sepal Length', 'Sepal Width'])
-df['Species'] = y
-
-# Data visualization
-sns.pairplot(df, hue='Species', diag_kind='kde')
-plt.show()
-
 # Split data into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Create a Perceptron classifier
-clf = PerceptronModel(learning_rate=0.1, max_iter=1000)  # Fixed class name and parameter
-
-# Train the model
+# Create and train the Perceptron model
+clf = PerceptronModel(learning_rate=0.1, max_iter=1000)
 clf.fit(X_train, y_train)
+
+# Plot the decision boundary on training data
+plot_decision_boundary(X_train, y_train, clf, "Perceptron Decision Boundary for Iris Data")
 
 # Make predictions
 y_pred = clf.predict(X_test)
